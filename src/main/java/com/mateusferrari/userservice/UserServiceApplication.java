@@ -1,4 +1,4 @@
-package com.mateusferrari.user_service;
+package com.mateusferrari.userservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
