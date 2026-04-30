@@ -1,8 +1,10 @@
 package com.mateusferrari.userservice.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class JwtAuthenticationResponse {
     private String accessToken;
     private String refreshToken;
