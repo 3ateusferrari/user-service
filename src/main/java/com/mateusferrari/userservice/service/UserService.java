@@ -9,19 +9,24 @@ import com.mateusferrari.userservice.mapper.UserMapper;
 import com.mateusferrari.userservice.model.User;
 import com.mateusferrari.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
+    @CacheEvict(value = {"users", "userPages"}, allEntries = true)
     public UserResponse createUser(UserCreateRequest userRequest) {
         if (userRepository.existsByEmail(userRequest.getEmail())) {
             throw new EmailAlreadyInUseException("Email already in use: " + userRequest.getEmail());
@@ -33,17 +38,20 @@ public class UserService {
         return userMapper.toResponse(user);
     }
 
+    @Cacheable(value = "userPages", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<UserResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable)
                 .map(userMapper::toResponse);
     }
 
+    @Cacheable(value = "users", key = "#id")
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
         return userMapper.toResponse(user);
     }
 
+    @CacheEvict(value = {"users", "userPages"}, allEntries = true)
     public UserResponse updateUser(Long id, UserUpdateRequest userRequest) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
@@ -62,6 +70,7 @@ public class UserService {
         return userMapper.toResponse(user);
     }
 
+    @CacheEvict(value = {"users", "userPages"}, allEntries = true)
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
             throw new UserNotFoundException("User not found with id: " + id);
