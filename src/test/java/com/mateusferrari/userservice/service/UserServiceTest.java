@@ -34,7 +34,7 @@ public class UserServiceTest {
     @Test
     void testCreateUser() {
         UserCreateRequest userRequest = new UserCreateRequest("Test User", "test@test.com", "password");
-        User user = new User(1L, "Test User", "test@test.com", "encodedPassword");
+        User user = new User(1L, "Test User", "test@test.com", "encodedPassword", false);
         UserResponse expectedResponse = new UserResponse(1L, "Test User", "test@test.com");
 
         when(userMapper.toEntity(any(UserCreateRequest.class))).thenReturn(user);
