@@ -1,7 +1,8 @@
 package com.mateusferrari.userservice.controller;
 
-import com.mateusferrari.userservice.dto.UserRequest;
+import com.mateusferrari.userservice.dto.UserCreateRequest;
 import com.mateusferrari.userservice.dto.UserResponse;
+import com.mateusferrari.userservice.dto.UserUpdateRequest;
 import com.mateusferrari.userservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestBody @Valid UserRequest userRequest) {
+    public ResponseEntity<UserResponse> createUser(@RequestBody @Valid UserCreateRequest userRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequest));
     }
 
@@ -34,7 +35,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody @Valid UserRequest userRequest) {
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody @Valid UserUpdateRequest userRequest) {
         return ResponseEntity.ok(userService.updateUser(id, userRequest));
     }
 

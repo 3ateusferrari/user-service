@@ -1,8 +1,11 @@
 package com.mateusferrari.userservice.service;
 
-import com.mateusferrari.userservice.dto.UserRequest;
+import com.mateusferrari.userservice.dto.UserCreateRequest;
 import com.mateusferrari.userservice.dto.UserResponse;
+import com.mateusferrari.userservice.dto.UserUpdateRequest;
+import com.mateusferrari.userservice.exception.EmailAlreadyInUseException;
 import com.mateusferrari.userservice.exception.UserNotFoundException;
+import com.mateusferrari.userservice.mapper.UserMapper;
 import com.mateusferrari.userservice.model.User;
 import com.mateusferrari.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,37 +20,46 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    public UserResponse createUser(UserRequest userRequest) {
-        User user = new User();
-        user.setName(userRequest.getName());
-        user.setEmail(userRequest.getEmail());
+    public UserResponse createUser(UserCreateRequest userRequest) {
+        if (userRepository.existsByEmail(userRequest.getEmail())) {
+            throw new EmailAlreadyInUseException("Email already in use: " + userRequest.getEmail());
+        }
+
+        User user = userMapper.toEntity(userRequest);
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         user = userRepository.save(user);
-        return new UserResponse(user.getId(), user.getName(), user.getEmail());
+        return userMapper.toResponse(user);
     }
 
     public Page<UserResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable)
-                .map(user -> new UserResponse(user.getId(), user.getName(), user.getEmail()));
+                .map(userMapper::toResponse);
     }
 
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-        return new UserResponse(user.getId(), user.getName(), user.getEmail());
+        return userMapper.toResponse(user);
     }
 
-    public UserResponse updateUser(Long id, UserRequest userRequest) {
+    public UserResponse updateUser(Long id, UserUpdateRequest userRequest) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-        user.setName(userRequest.getName());
-        user.setEmail(userRequest.getEmail());
+
+        if (!user.getEmail().equals(userRequest.getEmail()) && userRepository.existsByEmail(userRequest.getEmail())) {
+            throw new EmailAlreadyInUseException("Email already in use: " + userRequest.getEmail());
+        }
+
+        userMapper.updateEntityFromRequest(userRequest, user);
+        
         if (userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }
+        
         user = userRepository.save(user);
-        return new UserResponse(user.getId(), user.getName(), user.getEmail());
+        return userMapper.toResponse(user);
     }
 
     public void deleteUser(Long id) {

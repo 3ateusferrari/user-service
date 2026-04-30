@@ -2,7 +2,7 @@ package com.mateusferrari.userservice.controller;
 
 import com.mateusferrari.userservice.dto.JwtAuthenticationResponse;
 import com.mateusferrari.userservice.dto.LoginRequest;
-import com.mateusferrari.userservice.dto.UserRequest;
+import com.mateusferrari.userservice.dto.UserCreateRequest;
 import com.mateusferrari.userservice.dto.UserResponse;
 import com.mateusferrari.userservice.security.JwtTokenProvider;
 import com.mateusferrari.userservice.service.UserService;
@@ -44,7 +44,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRequest userRequest) {
+    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserCreateRequest userRequest) {
         return ResponseEntity.ok(userService.createUser(userRequest));
     }
 }

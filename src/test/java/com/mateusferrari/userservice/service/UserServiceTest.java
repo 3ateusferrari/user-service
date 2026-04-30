@@ -1,7 +1,8 @@
 package com.mateusferrari.userservice.service;
 
-import com.mateusferrari.userservice.dto.UserRequest;
+import com.mateusferrari.userservice.dto.UserCreateRequest;
 import com.mateusferrari.userservice.dto.UserResponse;
+import com.mateusferrari.userservice.mapper.UserMapper;
 import com.mateusferrari.userservice.model.User;
 import com.mateusferrari.userservice.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -24,21 +25,27 @@ public class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private UserMapper userMapper;
+
     @InjectMocks
     private UserService userService;
 
     @Test
     void testCreateUser() {
-        UserRequest userRequest = new UserRequest("Test User", "test@test.com", "password");
+        UserCreateRequest userRequest = new UserCreateRequest("Test User", "test@test.com", "password");
         User user = new User(1L, "Test User", "test@test.com", "encodedPassword");
+        UserResponse expectedResponse = new UserResponse(1L, "Test User", "test@test.com");
 
+        when(userMapper.toEntity(any(UserCreateRequest.class))).thenReturn(user);
         when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userMapper.toResponse(any(User.class))).thenReturn(expectedResponse);
 
         UserResponse userResponse = userService.createUser(userRequest);
 
-        assertEquals(user.getId(), userResponse.getId());
-        assertEquals(user.getName(), userResponse.getName());
-        assertEquals(user.getEmail(), userResponse.getEmail());
+        assertEquals(expectedResponse.getId(), userResponse.getId());
+        assertEquals(expectedResponse.getName(), userResponse.getName());
+        assertEquals(expectedResponse.getEmail(), userResponse.getEmail());
     }
 }
